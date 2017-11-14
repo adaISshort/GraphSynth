@@ -12,7 +12,7 @@ namespace ConsoleApp2
 {
     class GraphEval:SearchProcess
     {
-        //Trivial changes shit
+        //Trivial changes 
 
         // Variable that tracks score of a graph
         // Should be local to this class 
