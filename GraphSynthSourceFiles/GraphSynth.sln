@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A8E3F6A5-EC42-4B80-AFA7-2A00C93E7105}"
 	ProjectSection(SolutionItems) = preProject
@@ -35,6 +35,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphSynthConsole", "GraphSynthConsole\GraphSynthConsole.csproj", "{8E7D4CFD-E5BD-4187-BDBD-F7F9661ABC9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphSynth.BaseClasses", "GraphSynth.BaseClasses\GraphSynth.BaseClasses.csproj", "{D679F4E2-FD18-48AC-9C0C-B60155A61D37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp2", "ConsoleApp2\ConsoleApp2.csproj", "{84E73794-FA2A-487D-8EB4-BAA25AF17598}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,6 +100,18 @@ Global
 		{D679F4E2-FD18-48AC-9C0C-B60155A61D37}.WPF GUI Debug|Any CPU.Build.0 = WPF GUI Debug|Any CPU
 		{D679F4E2-FD18-48AC-9C0C-B60155A61D37}.WPF GUI Release|Any CPU.ActiveCfg = WPF GUI Release|Any CPU
 		{D679F4E2-FD18-48AC-9C0C-B60155A61D37}.WPF GUI Release|Any CPU.Build.0 = WPF GUI Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Console Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Console Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Console Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Console Release|Any CPU.Build.0 = Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.WPF GUI Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.WPF GUI Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.WPF GUI Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84E73794-FA2A-487D-8EB4-BAA25AF17598}.WPF GUI Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,6 +123,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		VisualSVNWorkingCopyRoot = ..
+		SolutionGuid = {5BD124B8-73F2-4C9F-BCFA-016BFF1CCD9A}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		version = 0.1
