@@ -124,7 +124,10 @@
     <Compile Include="Logistics\SearchIO.cs" />
     <Compile Include="Logistics\ComparerAndEnumerators.cs" />
     <Compile Include="Logistics\MyIOPath.cs" />
+    <Compile Include="SearchProcess\Bandits\AbstractBandit.cs" />
+    <Compile Include="SearchProcess\Bandits\EGreedyBandit.cs" />
     <Compile Include="SearchProcess\LindenmayerChoose.cs" />
+    <Compile Include="SearchProcess\MCTS.cs" />
     <Compile Include="SearchProcess\RandomChoose.cs" />
     <Compile Include="SearchProcess\RandomChooseWithUndo.cs" />
     <Compile Include="SearchProcess\RecognizeChooseApply.cs" />

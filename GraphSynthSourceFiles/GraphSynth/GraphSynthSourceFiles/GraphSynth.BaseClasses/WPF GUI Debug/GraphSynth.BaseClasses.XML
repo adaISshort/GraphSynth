@@ -2307,7 +2307,7 @@
               options which make changes to a host.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:GraphSynth.Representation.ruleSet.nextGenerationStep" -->
+        <!-- Commentaire XML incorrect pour le membre "F:GraphSynth.Representation.ruleSet.nextGenerationStep" -->
         <member name="F:GraphSynth.Representation.ruleSet.ruleFileNames">
             <summary>
               Represents a list of the rule file names.
