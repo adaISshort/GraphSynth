@@ -43,8 +43,6 @@ namespace GraphSynth.Search {
         private int _maxWidth;
 
         private Delegate _evaluation;
-        private readonly Delegate _bandit;
-        private object[] _banditParams;
 
         #region Constructors
 
@@ -59,17 +57,14 @@ namespace GraphSynth.Search {
         /// <param name="numTrials">How many times to recurse down the root node (AKA get new information).</param>
         /// <param name="maxWidth">Maximum number of pulls to perform at any given node for an action.</param>
         /// <param name="evaluation">Method for evaluating leaf nodes.</param>
-        /// <param name="bandit">Constructor for bandit which dictates how we select arms to pull.</param>
-        /// <param name="banditParams">Options for creating the bandit.</param>
         public Mcts(designGraph seed, ruleSet[] rulesets, int[] numCalls, bool display, int depth, int numTrials,
-            int maxWidth, Delegate evaluation, Delegate bandit, params object[] banditParams)
+            int maxWidth, Delegate evaluation)
             : base(seed, rulesets, numCalls, display) {
-            _depth = depth;
-            _numTrials = numTrials;
-            _maxWidth = maxWidth;
+            // TODO parameterize default values
+            _depth = 5;
+            _numTrials = 1000;
+            _maxWidth = 1;
             _evaluation = evaluation;
-            _bandit = bandit;
-            _banditParams = banditParams;
         }
 
         #endregion
@@ -81,16 +76,16 @@ namespace GraphSynth.Search {
         /// <param name="options">The options.</param>
         /// <param name="cand">The cand.</param>  TODO clarify
         /// <returns></returns>
-        public override int choose(List<option> options, candidate cand) {
+        public override int[] choose(List<option> options, candidate cand) {
             if (_depth == 0 || options.Count == 0)
-                return 0; // there's nothing left to do
+                return new[] { 0 }; // there's nothing left to do
 
-            var rootNode = new BanditNode(cand, 0, options, (AbstractBandit) _bandit.DynamicInvoke(_banditParams));
+            var rootNode = new BanditNode(cand, 0, options, new EGreedyBandit(options.Count, .5)); // default to .5 for epsilon
 
             for (var i = 0; i < _numTrials; i++)
                 RunTrial(rootNode, _depth);
 
-            return rootNode.Bandit.GetBestArm(); // return index of best arm we've found
+            return new[] { rootNode.Bandit.GetBestArm() }; // return index of best arm we've found
         }
 
         private double RunTrial(BanditNode node, int depth) {
@@ -101,27 +96,27 @@ namespace GraphSynth.Search {
             double totalReward;
             // If we reach max child nodes, then select randomly among children according to how much we've visited
             if (node.Children[optionIndex].Count >= _maxWidth) {
-                candidate[] keys = Children[optionIndex].Keys();
+                var keys = new List<candidate> (node.Children[optionIndex].Keys);
                 var successorIndex = node.Multinomial(optionIndex);
                 var successorNode = node.Children[optionIndex][keys[successorIndex]].Node;
                 totalReward = successorNode.TransitionReward + RunTrial(successorNode, depth - 1);
             } else {
-                // generate a new successor node
+                // generate a new successor node (assume reward is 0)
                 var successorState = node.State.copy();
-                // Reward for taking selected action at this node
-                double immediateReward = successorState.applyOption(node.Options[optionIndex]); // TODO want to apply option to copy of candidate
+                node.Options[optionIndex].apply(successorState.graph, null); // TODO possible error
 
                 // If the successor state is already in node.Children
                 if (node.Children[optionIndex].ContainsKey(successorState)) {
                     var successorNode = node.Children[optionIndex][successorState].Node;
                     node.Children[optionIndex][successorState].Visits += 1; // mark that we've sampled
-                    totalReward = immediateReward + RunTrial(successorNode, depth - 1);
+                    totalReward =  RunTrial(successorNode, depth - 1);
                 } else {
-                    // TODO trying to find options applicable for given candidate
-                    var successorNode = new BanditNode(successorState, immediateReward, successorState.getOptions(),
-                        (AbstractBandit) _bandit.DynamicInvoke(_banditParams));
+                    // TODO trying to find options applicable for given candidate - only using first ruleset
+                    var successorOptions = Rulesets[0].recognize(successorState.graph, InParallel);
+                    var successorNode = new BanditNode(successorState, 0, successorOptions, 
+                        new EGreedyBandit(successorOptions.Count, .5));
                     node.Children[optionIndex][successorState] = new BanditNode.NodeCountTuple(successorNode);
-                    totalReward = immediateReward + (double) _evaluation.DynamicInvoke(successorState);
+                    totalReward = (double) _evaluation.DynamicInvoke(successorState);
                 }
             }
             
@@ -181,7 +176,7 @@ namespace GraphSynth.Search {
         /// Samples the multinomial for the weighted number of visits to each child of the specified option index.
         /// </summary>
         public int Multinomial(int index) {
-            candidate[] keys = Children[index].Keys(); // TODO unknown syntax error
+            var keys = new List<candidate> (Children[index].Keys); 
             var counts = keys.Select(k => Children[index][k].Visits).ToList();
             var countSum = counts.Sum();
             // List of counts proportional to number of times each child was sampled
@@ -194,6 +189,7 @@ namespace GraphSynth.Search {
                 if (randVal <= current)
                     return i;
             }
+            return -1; // should never reach this (included for compilation purposes)
         }
     }
 }
