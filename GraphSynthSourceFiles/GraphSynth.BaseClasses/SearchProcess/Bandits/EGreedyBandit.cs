@@ -12,20 +12,20 @@ namespace GraphSynth.Search.Bandits {
         /// <summary>
         /// Pulls the most rewarding arm with (1 - epsilon) probability; otherwise, a non-optimal arm is pulled at random.
         /// </summary>
-        public int SelectPullArm() {
-            if (numArms <= 1) {
+        public new int SelectPullArm() {
+            if (NumArms <= 1) {
                 return 0; // return the only arm we can
             }
 
-            if (totalPulls < numArms) {
-                return totalPulls; // haven't tried each arm at least once yet
+            if (TotalPulls < NumArms) {
+                return TotalPulls; // haven't tried each arm at least once yet
             }
 
             var bestArm = GetBestArm();
             if (_rand.NextDouble() < _epsilon) {
-                var nonBest = _rand.Next(numArms);
+                var nonBest = _rand.Next(NumArms);
                 while (nonBest == bestArm) {
-                    nonBest = _rand.Next(numArms);
+                    nonBest = _rand.Next(NumArms);
                 }
                 return nonBest; // pull a random non-best arm
             } 

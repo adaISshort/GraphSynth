@@ -1,21 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 
 namespace GraphSynth.Search.Bandits {
     public class AbstractBandit {
-        public int numArms;
-        public int totalPulls;
+        protected readonly int NumArms;
+        protected int TotalPulls;
         public int[] numPulls; // how many times we've pulled each arm
         public double[] averageReward;
 
         /// <summary>
         /// Initialize a new AbstractBandit.
         /// </summary>
-        /// <param name="numArms_">How many actions are available at the corresponding state.</param>
+        /// <param name="umArms_">How many actions are available at the corresponding state.</param>
         public AbstractBandit(int numArms_) {
-            numArms = numArms_;
-            averageReward = new double [numArms]; // rewards initialized to 0
-            numPulls = new int [numArms];
+            NumArms = numArms_;
+            averageReward = new double [NumArms]; // rewards initialized to 0
+            numPulls = new int [NumArms];
         }
 
         /// <summary>
@@ -26,23 +27,14 @@ namespace GraphSynth.Search.Bandits {
         public void Update(int arm, int reward) {
             numPulls[arm]++;
             averageReward[arm] = (averageReward[arm] * (numPulls[arm] - 1) + reward) / numPulls[arm];
-            totalPulls++;
+            TotalPulls++;
         }
 
         /// <summary>
         /// Get the arm with the best average reward.
         /// </summary>
         public int GetBestArm() {
-            var max = double.NegativeInfinity;
-            var maxArm = 0;
-            for (var i = 0; i < numArms; i++) {
-                if (averageReward[i] > max) {
-                    max = averageReward[i];
-                    maxArm = i;
-                }
-            }
-
-            return maxArm;
+            return Array.IndexOf(averageReward, GetBestReward());  // TODO makes two passes
         }
 
         /// <summary>
