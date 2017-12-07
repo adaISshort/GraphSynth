@@ -103,12 +103,14 @@ namespace GraphSynth.Search {
             } else {
                 // generate a new successor node (assume reward is 0)
                 var successorState = node.State.copy();
+                // TODO get immediate reward, even if it's 0 here
                 node.Options[optionIndex].apply(successorState.graph, null); // TODO possible error
 
                 // If the successor state is already in node.Children
                 if (node.Children[optionIndex].ContainsKey(successorState)) {
                     var successorNode = node.Children[optionIndex][successorState].Node;
                     node.Children[optionIndex][successorState].Visits += 1; // mark that we've sampled
+                    
                     totalReward =  RunTrial(successorNode, depth - 1);
                 } else {
                     // TODO trying to find options applicable for given candidate - only using first ruleset
@@ -116,25 +118,12 @@ namespace GraphSynth.Search {
                     var successorNode = new BanditNode(successorState, 0, successorOptions, 
                         new EGreedyBandit(successorOptions.Count, .5));
                     node.Children[optionIndex][successorState] = new BanditNode.NodeCountTuple(successorNode);
-                    totalReward = (double) _evaluation.DynamicInvoke(successorState);
+                    totalReward = (double) _evaluation.DynamicInvoke(successorState);  // TODO add immediate reward back in
                 }
             }
             
             node.Bandit.Update(optionIndex, totalReward);
             return totalReward;
-        }
-
-        /// <summary>
-        /// Chooses the specified option. Given that the rule has now been chosen, determine
-        /// the values needed by the rule to properly apply it to the candidate, cand. The
-        /// array of double is to be determined by parametric apply rules written in
-        /// complement C# files for the ruleSet being used.
-        /// </summary>
-        /// <param name="opt">The opt.</param>
-        /// <param name="cand">The cand.</param>
-        /// <returns></returns>
-        public override double[] choose(option opt, candidate cand) {
-            return null;
         }
     }
 
