@@ -24,7 +24,7 @@ namespace GraphSynth.Search.Bandits {
         /// </summary>
         /// <param name="arm">The index of the arm to update.</param>
         /// <param name="reward">The observed reward.</param>
-        public void Update(int arm, int reward) {
+        public void Update(int arm, double reward) {
             numPulls[arm]++;
             averageReward[arm] = (averageReward[arm] * (numPulls[arm] - 1) + reward) / numPulls[arm];
             TotalPulls++;

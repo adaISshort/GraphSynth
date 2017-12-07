@@ -28,8 +28,11 @@
 using GraphSynth.Search.Bandits;
 using GraphSynth.Representation;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace GraphSynth.Search {
     /// <summary>
@@ -57,7 +60,7 @@ namespace GraphSynth.Search {
         /// <param name="display">If set to <c>true</c> [display].</param>
         /// <param name="depth">How many levels to recurse into the constructed tree.</param>
         /// <param name="numTrials">How many times to recurse down the root node (AKA get new information).</param>
-        /// <param name="maxWidth">Maximum number of pulls to perform at any given node.</param>
+        /// <param name="maxWidth">Maximum number of pulls to perform at any given node for an action.</param>
         /// <param name="evaluation">Method for evaluating leaf nodes.</param>
         /// <param name="bandit">Constructor for bandit which dictates how we select arms to pull.</param>
         /// <param name="banditParams">Options for creating the bandit.</param>
@@ -82,18 +85,52 @@ namespace GraphSynth.Search {
         /// <param name="cand">The cand.</param>  TODO clarify
         /// <returns></returns>
         public override int choose(List<option> options, candidate cand) {
-            if (_depth == 0 || options.Count == 0) {
+            if (_depth == 0 || options.Count == 0)
                 return 0; // there's nothing left to do
-            }
 
-            var rootNode = new BanditNode(cand, 0, options, _bandit.DynamicInvoke(_banditParams));
+            var rootNode = new BanditNode(cand, 0, options, (AbstractBandit) _bandit.DynamicInvoke(_banditParams));
 
             for (var i = 0; i < _numTrials; i++)
-                runTrial(rootNode, _depth);
+                RunTrial(rootNode, _depth);
 
-            return rootNode.bandit.getBestArm();  // return index of best arm we've found
+            return rootNode.Bandit.GetBestArm(); // return index of best arm we've found
         }
 
+        private double RunTrial(BanditNode node, int depth) {
+            if (depth == 0) // leaf node
+                return (double) _evaluation.DynamicInvoke(node.State);
+
+            var optionIndex = node.Bandit.SelectPullArm();
+            double totalReward;
+            // If we reach max child nodes, then select randomly among children according to how much we've visited
+            if (node.Children[optionIndex].Count >= _maxWidth) {
+                candidate[] keys = Children[optionIndex].Keys();
+                var successorIndex = node.Multinomial(optionIndex);
+                var successorNode = node.Children[optionIndex][keys[successorIndex]].Node;
+                totalReward = successorNode.TransitionReward + RunTrial(successorNode, depth - 1);
+            } else {
+                // generate a new successor node
+                var successorState = node.State.copy();
+                // Reward for taking selected action at this node
+                double immediateReward = successorState.applyOption(node.Options[optionIndex]); // TODO want to apply option to copy of candidate
+
+                // If the successor state is already in node.Children
+                if (node.Children[optionIndex].ContainsKey(successorState)) {
+                    var successorNode = node.Children[optionIndex][successorState].Node;
+                    node.Children[optionIndex][successorState].Visits += 1; // mark that we've sampled
+                    totalReward = immediateReward + RunTrial(successorNode, depth - 1);
+                } else {
+                    // TODO trying to find options applicable for given candidate
+                    var successorNode = new BanditNode(successorState, immediateReward, successorState.getOptions(),
+                        (AbstractBandit) _bandit.DynamicInvoke(_banditParams));
+                    node.Children[optionIndex][successorState] = new BanditNode.NodeCountTuple(successorNode);
+                    totalReward = immediateReward + (double) _evaluation.DynamicInvoke(successorState);
+                }
+            }
+            
+            node.Bandit.Update(optionIndex, totalReward);
+            return totalReward;
+        }
 
         /// <summary>
         /// Chooses the specified option. Given that the rule has now been chosen, determine
@@ -106,6 +143,60 @@ namespace GraphSynth.Search {
         /// <returns></returns>
         public override double[] choose(option opt, candidate cand) {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Stores information on a state, the reward for reaching the state, the options available, and the bandit used.
+    /// </summary>
+    public class BanditNode {
+        private readonly Random _rnd = new Random();
+
+        public candidate State;
+        public List<option> Options;
+        public AbstractBandit Bandit;
+        public double TransitionReward;
+
+        /// <summary>
+        /// Each action is associated with a dictionary that stores successor bandits/states.
+        /// The key for each successor is the state. 
+        /// The value is a tuple [n,c], where n is a BanditNode and c is the number of times that n has been sampled.
+        /// </summary>
+        public List<Dictionary<candidate, NodeCountTuple>> Children;
+
+        public class NodeCountTuple {
+            public BanditNode Node;
+            public int Visits = 1; // should be initialized on the first visit
+
+            public NodeCountTuple(BanditNode node) {
+                Node = node;
+            }
+        }
+
+        public BanditNode(candidate state, double transitionReward, List<option> options, AbstractBandit bandit) {
+            State = state;
+            TransitionReward = transitionReward;
+            Options = options;
+            Bandit = bandit;
+        }
+
+        /// <summary>
+        /// Samples the multinomial for the weighted number of visits to each child of the specified option index.
+        /// </summary>
+        public int Multinomial(int index) {
+            candidate[] keys = Children[index].Keys(); // TODO unknown syntax error
+            var counts = keys.Select(k => Children[index][k].Visits).ToList();
+            var countSum = counts.Sum();
+            // List of counts proportional to number of times each child was sampled
+            var averagedCounts = counts.Select(c => (double) c / countSum).ToList();
+
+            var randVal = _rnd.NextDouble();
+            double current = 0;
+            for (var i = 0; i < averagedCounts.Count; i++) {
+                current += averagedCounts[i];
+                if (randVal <= current)
+                    return i;
+            }
         }
     }
 }
